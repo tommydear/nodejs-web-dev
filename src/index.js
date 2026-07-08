@@ -10,6 +10,11 @@ const app = express()
 
 
 connectDB(process.env.MONGODB_URI_1).then(() => console.log("Database connected")).catch((err) => console.log(err))
+app.use(cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+    methods: ["GET", "POST", "DELETE"]
+}))
 
 app.use(express.json())
 app.use(cookieParser())
@@ -20,11 +25,6 @@ app.get("/", (req, res) => {
 })
 
 
-app.use(cors({
-    origin: "http://localhost:5173",
-    Credential: true,
-    methods: ["GET", "POST", "DELETE"]
-}))
 
 if(process.env.NODE_ENV !== "production") {
     app.listen(3000, () => {
