@@ -11,7 +11,7 @@ const app = express()
 
 connectDB(process.env.MONGODB_URI_1).then(() => console.log("Database connected")).catch((err) => console.log(err))
 app.use(cors({
-    origin: "http://localhost:5173",
+    origin: "https://react-dev8.vercel.app",
     credentials: true,
     methods: ["GET", "POST", "DELETE"]
 }))
