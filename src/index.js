@@ -8,8 +8,17 @@ import cookieParser from "cookie-parser";
 dotenv.config()
 const app = express()
 
+// Add middleware to ensure database connection before handling requests
+app.use(async (req, res, next) => {
+    try {
+        await connectDB(process.env.MONGODB_URI_1);
+        next();
+    } catch (err) {
+        console.error("Database connection failed:", err);
+        res.status(500).json({ error: "Database connection failed" });
+    }
+});
 
-connectDB(process.env.MONGODB_URI_1).then(() => console.log("Database connected")).catch((err) => console.log(err))
 app.use(cors({
     origin: "https://react-dev8.vercel.app",
     credentials: true,

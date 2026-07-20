@@ -1,17 +1,40 @@
 import mongoose from "mongoose"
 import dns from "node:dns"
+// DNS configuration removed because overriding DNS servers in Vercel 
+// can cause SRV record resolution to fail and block database connections.
 
-const dnsServers = (process.env.DNS_SERVERS || "8.8.8.8,1.1.1.1,8.8.4.4")
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean)
-dns.setServers(dnsServers)
+let cached = global.mongoose;
+
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
+}
 
 export const connectDB = async (uri, { timeoutMs = 15000 } = {}) => {
-    return mongoose.connect(uri, {
-        serverSelectionTimeoutMS: timeoutMs,
-        family: 4,
-    })
+  if (cached.conn) {
+    return cached.conn;
+  }
+
+  if (!cached.promise) {
+    const opts = {
+      serverSelectionTimeoutMS: timeoutMs,
+      family: 4,
+      bufferCommands: false, // Prevents mongoose from buffering commands when disconnected
+    };
+
+    cached.promise = mongoose.connect(uri, opts).then((mongoose) => {
+      console.log("Database connected successfully");
+      return mongoose;
+    });
+  }
+
+  try {
+    cached.conn = await cached.promise;
+  } catch (e) {
+    cached.promise = null;
+    throw e;
+  }
+
+  return cached.conn;
 }
 
 export const disconnectDB = () => mongoose.disconnect()
